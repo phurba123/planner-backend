@@ -3,7 +3,11 @@ const app = express();
 const config = require('./appconfig')
 const fs = require('fs')
 const http = require('http')
+const bodyParser = require('body-parser')
 
+
+app.use(bodyParser.urlencoded({extended:false}));
+app.use(bodyParser.json);
 let routesPath = './app/routes';
 //console.log('routesPath is : ' +routesPath);
 

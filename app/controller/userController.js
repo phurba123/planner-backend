@@ -34,6 +34,17 @@ let signUpUser = (req,res)=>
             }
         });
     }//end of validate user input
+
+    validateUserInput(req, res)
+    //.then(createUser)
+    .then((resolve) => {
+        apiResponse = response.generate(false, 'user created', 200, resolve);
+        res.send(apiResponse);
+    })
+    .catch((error) => {
+        logger.error(error.message, 'userController:signUpFunction', 10);
+        res.send(apiResponse);
+    })
 }
 //logging in user
 let logInUser = (req,res)=>
