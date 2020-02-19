@@ -14,3 +14,14 @@ fs.readdirSync(routesPath).forEach((file)=>
         route.setRouter(app);
     }
 });
+// end of route bootstrap
+
+/**
+ * Create HTTP server.
+ */
+
+const server = http.createServer(app);
+// start listening to http server
+server.listen(config.port);
+server.on('error', onError);
+server.on('listening', onListening);
