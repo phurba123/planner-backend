@@ -17,7 +17,7 @@ module.exports.setRouter = (app)=>
     app.get(`${baseUrl}/view/all`,userController.getAllUsers)
 
     //route for getting single user by userId
-    app.get(`${baseUrl}/view/:userId`,userController.getUserById);
+    app.get(`${baseUrl}/:userId/view`,userController.getUserById);
 
     //route for deleting particular user by user id
     app.post(`${baseUrl}/delete/:userId`,userController.deleteUserById);

@@ -5,9 +5,14 @@ const fs = require('fs')
 const http = require('http')
 const bodyParser = require('body-parser')
 
+//application level middlewares
 
-app.use(bodyParser.urlencoded({extended:false}));
-app.use(bodyParser.json);
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+ 
+// parse application/json
+app.use(bodyParser.json())
+
 let routesPath = './app/routes';
 //console.log('routesPath is : ' +routesPath);
 

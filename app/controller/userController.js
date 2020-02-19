@@ -4,10 +4,13 @@
 let checkLib = require('../lib/checkLib');
 let validateInput = require('../lib/paramsValidationLib')
 let response = require('../lib/responseLib')
+let logger = require('../lib/loggerLib')
 
 //Signing up user
 let signUpUser = (req,res)=>
 {
+    console.log('inside signup')
+    let apiResponse;
      //validating email
      let validateUserInput = () => {
         return new Promise((resolve, reject) => {
@@ -34,18 +37,8 @@ let signUpUser = (req,res)=>
             }
         });
     }//end of validate user input
-
-    validateUserInput(req, res)
-    //.then(createUser)
-    .then((resolve) => {
-        apiResponse = response.generate(false, 'user created', 200, resolve);
-        res.send(apiResponse);
-    })
-    .catch((error) => {
-        logger.error(error.message, 'userController:signUpFunction', 10);
-        res.send(apiResponse);
-    })
 }
+
 //logging in user
 let logInUser = (req,res)=>
 {
