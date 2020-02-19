@@ -7,12 +7,11 @@ let response = require('../lib/responseLib')
 let logger = require('../lib/loggerLib')
 
 //Signing up user
-let signUpUser = (req,res)=>
-{
+let signUpUser = (req, res) => {
     console.log('inside signup')
     let apiResponse;
-     //validating email
-     let validateUserInput = () => {
+    //validating email
+    let validateUserInput = () => {
         return new Promise((resolve, reject) => {
             if (req.body.email) {
                 if (!validateInput.Email(req.body.email)) {
@@ -37,37 +36,46 @@ let signUpUser = (req,res)=>
             }
         });
     }//end of validate user input
+
+    validateUserInput(req, res)
+        .then((resolve) => {
+            console.log('inside resolve')
+            apiResponse = response.generate(false, 'user created', 200, resolve);
+            res.send(apiResponse);
+        })
+        .catch((error)=>
+        {
+            console.log('inside catch')
+            apiResponse = response.generate(true,error.message,500,null);
+            res.send(apiResponse)
+        })
 }
 
 //logging in user
-let logInUser = (req,res)=>
-{
+let logInUser = (req, res) => {
     res.send('login')
 }
 
 //getting all users
-let getAllUsers = (req,res)=>
-{
+let getAllUsers = (req, res) => {
     res.send('getting all users')
 }
 
 //getting single user by userId
-let getUserById = (req,res)=>
-{
+let getUserById = (req, res) => {
     res.send('getting single user by id')
 }
 
 //deleting single user by userId
-let deleteUserById = (req,res)=>
-{
+let deleteUserById = (req, res) => {
     res.send('deleting single user by id')
 }
 
 module.exports =
-{
-    signUpUser,
-    logInUser,
-    getAllUsers,
-    getUserById,
-    deleteUserById
-}
+    {
+        signUpUser,
+        logInUser,
+        getAllUsers,
+        getUserById,
+        deleteUserById
+    }
