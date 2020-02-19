@@ -2,6 +2,8 @@
  * Controller  for routes
  */
 let checkLib = require('../lib/checkLib');
+let validateInput = require('../lib/paramsValidationLib')
+let response = require('../lib/responseLib')
 
 //Signing up user
 let signUpUser = (req,res)=>
