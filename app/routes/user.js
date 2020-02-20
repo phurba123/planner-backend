@@ -1,5 +1,6 @@
 let config = require('../../appconfig');
 let userController = require('../controller/userController');
+let authMiddleware = require('../middleware/auth')
 
 module.exports.setRouter = (app)=>
 {
@@ -12,6 +13,9 @@ module.exports.setRouter = (app)=>
 
     //route for login
     app.post(`${baseUrl}/login`,userController.logInUser);
+
+    //route for logout
+    app.post(`${baseUrl}/logout`,authMiddleware.isAuthorized, userController.logout);
 
     //route for getting all the users
     app.get(`${baseUrl}/view/all`,userController.getAllUsers)

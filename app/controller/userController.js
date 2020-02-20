@@ -272,6 +272,24 @@ let logInUser = (req, res) => {
 
 }//end of login
 
+let logout = (req, res) => {
+    authModel.findOneAndRemove({ userId: req.user.userId }, (err, result) => {
+        if (err) {
+            console.log(err)
+            logger.error(err.message, 'user Controller: logout', 10)
+            let apiResponse = response.generate(true, `error occurred: ${err.message}`, 500, null)
+            res.send(apiResponse)
+        } else if (checkLib.isEmpty(result)) {
+            let apiResponse = response.generate(true, 'Already Logged Out or Invalid UserId', 404, null)
+            res.send(apiResponse)
+        } else {
+            let apiResponse = response.generate(false, 'Logged Out Successfully', 200, null)
+            res.send(apiResponse)
+        }
+    })
+
+} // end of the logout function.
+
 //getting all users
 let getAllUsers = (req, res) => {
     res.send('getting all users')
@@ -293,5 +311,6 @@ module.exports =
         logInUser,
         getAllUsers,
         getUserById,
-        deleteUserById
+        deleteUserById,
+        logout
     }
