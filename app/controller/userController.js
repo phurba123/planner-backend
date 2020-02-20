@@ -74,7 +74,7 @@ let signUpUser = (req, res) => {
                             } else {
                                 //converting mongoose object to plain javascript object
                                 let newUserObj = newUser.toObject();
-                                
+
                                 resolve(newUserObj)
                             }
                         })
@@ -89,7 +89,7 @@ let signUpUser = (req, res) => {
 
 
     validateUserInput(req, res)
-    .then(createUser)
+        .then(createUser)
         .then((resolve) => {
             console.log('inside resolve')
             delete resolve.password;
@@ -104,10 +104,72 @@ let signUpUser = (req, res) => {
             res.send(apiResponse)
         })
 }
+//signup function completed
 
 //logging in user
 let logInUser = (req, res) => {
-    res.send('login')
+
+    //using promise for finding user
+    let findUser = () => {
+        //function for finding a user
+        console.log('find user');
+        return new Promise((resolve, reject) => {
+            if (req.body.email) {
+                UserModel.findOne({ email: req.body.email }, (err, userDetails) => {
+                    if (err) {
+                        logger.error(err.message, 'userController:loginUser:findUser', 10);
+                        apiResponse = response.generate(true, 'failed to find user detail', 500, null);
+                        reject(apiResponse)
+                    }
+                    else if (check.isEmpty(userDetails)) {
+                        //userdetails is empty so it means that the user with given email is not 
+                        //registered yet
+                        logger.info('no user found with given email', 'userController:findUser', 7);
+                        apiResponse = response.generate(true, 'no user details found', 404, null);
+                        reject(apiResponse)
+                    }
+                    else {
+                        logger.info('user found', 'userController:findUser', 10);
+                        resolve(userDetails);
+                    }
+                })
+            }
+            else {
+                //if email is not present then execute this else
+                logger.error('email is missing', 'userController:findUser', 10);
+                apiResponse = response.generate(true, 'email is missing', 400, null);
+                reject(apiResponse)
+            }
+        });//end of promise
+    }//end of findUser
+
+    let validatePassword = (retrievedUserDetails) => {
+        //validating password provided
+        console.log('validate password');
+        return new Promise((resolve, reject) => {
+            passwordLib.comparePassword(req.body.password, retrievedUserDetails.password, (err, isMatch) => {
+                if (err) {
+                    logger.error(err.message, 'userController:validatePassword', 10);
+                    apiResponse = response.generate(true, 'login failed', 500, null);
+                    reject(apiResponse);
+                }
+                else if (isMatch) {
+                    //converting mongoose object to normal javascript object 
+                    let retrievedUserDetailsObj = retrievedUserDetails.toObject();
+                    delete retrievedUserDetailsObj.password;
+                    delete retrievedUserDetailsObj._id;
+                    delete retrievedUserDetailsObj.__v;
+                    delete retrievedUserDetailsObj.createdOn;
+                    resolve(retrievedUserDetailsObj);
+                }
+                else {
+                    logger.info('login failed due to invalid password', 5);
+                    apiResponse = response.generate(true, 'wrong password.login failed', 400, null);
+                    reject(apiResponse);
+                }
+            })
+        })
+    }//end of validating password
 }
 
 //getting all users
