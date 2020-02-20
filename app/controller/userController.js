@@ -170,6 +170,8 @@ let logInUser = (req, res) => {
             })
         })
     }//end of validating password
+
+    
 }
 
 //getting all users
