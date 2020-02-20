@@ -11,7 +11,7 @@ module.exports.setRouter = (app)=>
     app.post(`${baseUrl}/signup`,userController.signUpUser);
 
     //route for login
-    app.post(`${baseUrl}/login`,userController.logInUser)
+    app.post(`${baseUrl}/login`,userController.logInUser);
 
     //route for getting all the users
     app.get(`${baseUrl}/view/all`,userController.getAllUsers)

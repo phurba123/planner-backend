@@ -270,7 +270,7 @@ let logInUser = (req, res) => {
             res.send(apiResponse);
         })
 
-}
+}//end of login
 
 //getting all users
 let getAllUsers = (req, res) => {
