@@ -6,8 +6,11 @@ let validateInput = require('../lib/paramsValidationLib')
 let response = require('../lib/responseLib')
 let logger = require('../lib/loggerLib')
 let shortid = require('shortid');
+let passwordLib = require('../lib/generatePasswordLib');
+let timeLib = require('../lib/timeLib')
 
 let mongoose = require('mongoose')
+
 let UserModel = mongoose.model('User');
 
 //Signing up user
@@ -51,44 +54,27 @@ let signUpUser = (req, res) => {
                         let apiResponse = response.generate(true, 'Failed To Create User', 500, null)
                         reject(apiResponse)
                     } else if (check.isEmpty(retrievedUserDetails)) {
-                        console.log(req.body)
+                        //console.log(req.body)
                         let newUser = new UserModel({
                             userId: shortid.generate(),
                             firstName: req.body.firstName,
                             lastName: req.body.lastName || '',
                             userName: req.body.userName,
-                            isAdmin: req.body.isAdmin,
-                            countryName: req.body.countryName,
                             mobileNumber: req.body.mobileNumber,
                             email: req.body.email.toLowerCase(),
                             password: passwordLib.hashpassword(req.body.password),
-                            createdOn: time.now()
+                            createdOn: timeLib.now()
                         })
                         newUser.save((err, newUser) => {
                             if (err) {
-                                console.log(err)
+                                //console.log(err)
                                 logger.error(err.message, 'userController: createUser', 10)
                                 let apiResponse = response.generate(true, 'Failed to create new User', 500, null)
                                 reject(apiResponse)
                             } else {
+                                //converting mongoose object to plain javascript object
                                 let newUserObj = newUser.toObject();
-                                console.log(`${applicationUrl}/verify-email/${newUserObj.userId}`)
-                                //Creating object for sending welcome email
-                                let sendEmailOptions = {
-                                    email: newUserObj.email,
-                                    name: newUserObj.firstName + ' ' + newUserObj.lastName,
-                                    subject: 'Welcome to Lets Meet ',
-                                    html: `<b> Dear ${newUserObj.firstName}</b><br> Hope you are doing well. 
-                                    <br>Welcome to our Meeting Planner App <br>
-                                    Please click on following link to verify your account with Lets Meet.<br>
-                                    <br> <a href="${applicationUrl}/verify-email/${newUserObj.userId}">Click Here</a>                                     
-                                    `
-                                }
-
-                                setTimeout(() => {
-                                    emailLib.sendEmail(sendEmailOptions);
-                                }, 2000);
-
+                                
                                 resolve(newUserObj)
                             }
                         })
@@ -103,8 +89,12 @@ let signUpUser = (req, res) => {
 
 
     validateUserInput(req, res)
+    .then(createUser)
         .then((resolve) => {
             console.log('inside resolve')
+            delete resolve.password;
+            delete resolve.__v;
+            delete resolve._id;
             apiResponse = response.generate(false, 'user created', 200, resolve);
             res.send(apiResponse);
         })
