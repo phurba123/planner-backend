@@ -24,6 +24,8 @@ module.exports.setRouter = (app)=>
     app.get(`${baseUrl}/:userId/view`,authMiddleware.isAuthorized, userController.getUserById);
 
     //route for deleting particular user by user id
-    app.post(`${baseUrl}/delete/:userId`,authMiddleware.isAuthorized, userController.deleteUserById);
-    
+    app.post(`${baseUrl}/:userId/delete`,authMiddleware.isAuthorized, userController.deleteUserById);
+
+    //route for editing particular user by id
+    app.put(`${baseUrl}/:userId/edit`,authMiddleware.isAuthorized,userController.editUser)
 }

@@ -355,6 +355,27 @@ let deleteUserById = (req, res) => {
         }
     });// end deleting user
 }
+
+//edit user by id
+let editUser = (req, res) => {
+
+    let options = req.body;
+    UserModel.update({ 'userId': req.params.userId }, options).exec((err, result) => {
+        if (err) {
+            console.log(err)
+            logger.error('failed to edit user', 'User Controller:editUser', 10)
+            let apiResponse = response.generate(true, 'Failed To edit user details', 500, null)
+            res.send(apiResponse)
+        } else if (checkLib.isEmpty(result)) {
+            logger.info('No User Found', 'User Controller: editUser')
+            let apiResponse = response.generate(true, 'No User Found', 404, null)
+            res.send(apiResponse)
+        } else {
+            let apiResponse = response.generate(false, 'User details edited', 200, result)
+            res.send(apiResponse)
+        }
+    });// end editing user
+}
 module.exports =
     {
         signUpUser,
@@ -362,5 +383,6 @@ module.exports =
         getAllUsers,
         getUserById,
         deleteUserById,
-        logout
+        logout,
+        editUser
     }
