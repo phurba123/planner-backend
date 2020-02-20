@@ -334,11 +334,27 @@ let getUserById = (req, res) => {
         })
 }// end get single user
 
-//deleting single user by userId
+//deleting single user by id
 let deleteUserById = (req, res) => {
-    res.send('deleting single user by id')
-}
 
+    UserModel.findOneAndRemove({ 'userId': req.params.userId }).exec((err, result) => {
+        if (err) {
+            console.log(err)
+            logger.error('failed to delete user', 'User Controller: deleteUser', 10)
+            let apiResponse = response.generate(true, 'Failed To delete user', 500, null)
+            res.send(apiResponse)
+        } else if (checkLib.isEmpty(result)) {
+            logger.info('No User Found', 'User Controller: deleteUser')
+            let apiResponse = response.generate(false, 'No User Found', 404, null)
+            res.send(apiResponse)
+        } else {
+            let resultObj = result.toObject();
+            delete resultObj.password
+            let apiResponse = response.generate(false, 'Deleted the user successfully', 200, resultObj)
+            res.send(apiResponse)
+        }
+    });// end deleting user
+}
 module.exports =
     {
         signUpUser,
