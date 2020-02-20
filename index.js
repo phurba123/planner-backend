@@ -6,14 +6,27 @@ const http = require('http')
 const bodyParser = require('body-parser')
 let mongoose = require('mongoose')
 let logger = require('./app/lib/loggerLib')
+const morgan = require('morgan')
+const routeLogger = require('./app/middleware/routeLogger');
+const appErrorHandler = require('./app/middleware/appErrorHandler')
 
 //application level middlewares
 
+app.use(morgan('dev'));
+app.use(routeLogger.logIp);
+app.use(appErrorHandler.globalErrorHandler);
+
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
-
 // parse application/json
 app.use(bodyParser.json())
+
+// app.all('*', function (req, res, next) {
+//   res.header("Access-Control-Allow-Origin", config.allowedCorsOrigin);
+//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
+//   next();
+// });
 
 let modelsPath = ('./app/model');
 //Bootstrap models
@@ -34,6 +47,9 @@ fs.readdirSync(routesPath).forEach(function (file) {
   }
 });
 // end bootstrap route
+
+//global 404 handler after route bootstrap
+app.use(appErrorHandler.globalNotFoundHandler)
 
 /**
  * Create HTTP server.
@@ -87,7 +103,7 @@ function onListening() {
   ('Listening on ' + bind);
 
   logger.info('server listening on port' + addr.port, 'serverOnListeningHandler', 10);
-  let db = mongoose.connect(config.db.uri, 
+  let db = mongoose.connect(config.db.uri,
     { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, });
 }
 
