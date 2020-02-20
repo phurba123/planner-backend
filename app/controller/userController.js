@@ -8,10 +8,12 @@ let logger = require('../lib/loggerLib')
 let shortid = require('shortid');
 let passwordLib = require('../lib/generatePasswordLib');
 let timeLib = require('../lib/timeLib')
+let tokenLib = require('../lib/tokenLib')
 
 let mongoose = require('mongoose')
 
 let UserModel = mongoose.model('User');
+let authModel = mongoose.model('authModel')
 
 //Signing up user
 let signUpUser = (req, res) => {
@@ -121,7 +123,7 @@ let logInUser = (req, res) => {
                         apiResponse = response.generate(true, 'failed to find user detail', 500, null);
                         reject(apiResponse)
                     }
-                    else if (check.isEmpty(userDetails)) {
+                    else if (checkLib.isEmpty(userDetails)) {
                         //userdetails is empty so it means that the user with given email is not 
                         //registered yet
                         logger.info('no user found with given email', 'userController:findUser', 7);
@@ -171,7 +173,103 @@ let logInUser = (req, res) => {
         })
     }//end of validating password
 
-    
+    let generateToken = (userDetails) => {
+        //generating token on validation
+        console.log('generate token');
+        return new Promise((resolve, reject) => {
+            tokenLib.generateToken(userDetails, (error, tokenDetails) => {
+                if (error) {
+                    console.log(error);
+                    apiResponse = response.generate(true, 'failed to generate token', 500, null);
+                    reject(apiResponse);
+                }
+                else {
+                    tokenDetails.userDetails = userDetails;
+                    resolve(tokenDetails);
+                }
+            })
+        })
+    }//end of generating token
+
+    let saveToken = (tokenDetails) => {
+        console.log('save token');
+
+        return new Promise((resolve, reject) => {
+            authModel.findOne({ userId: tokenDetails.userDetails.userId }, (err, retrievedTokenDetails) => {
+                if (err) {
+                    logger.error(err.message, 'userController:saveToken', 10);
+                    apiResponse = response.generate(true, err.message, 500, null);
+                    reject(apiResponse);
+                }
+                else if (checkLib.isEmpty(retrievedTokenDetails)) {
+                    //save new auth
+                    let newauthModel = new authModel(
+                        {
+                            userId: tokenDetails.userDetails.userId,
+                            authToken: tokenDetails.token,
+                            tokenSecret: tokenDetails.tokenSecret,
+                            tokenGenerationTime: timeLib.now()
+                        }
+                    );
+
+                    newauthModel.save((err, newTokenDetails) => {
+                        if (err) {
+                            logger.error('error while saving new auth model', 'userController:savetoken', 10);
+                            apiResponse = response.generate(true, err.message, 500, null);
+                            reject(apiResponse)
+                        }
+                        else {
+                            let responseBody = {
+                                authToken: newTokenDetails.authToken,
+                                userDetails: tokenDetails.userDetails
+                            }
+
+                            resolve(responseBody)
+                        }
+                    })
+                }
+                else {
+                    //already present,so,update it
+                    retrievedTokenDetails.authToken = tokenDetails.token;
+                    retrievedTokenDetails.tokenSecret = tokenDetails.tokenSecret;
+                    retrievedTokenDetails.tokenGenerationTime = timeLib.now();
+
+                    retrievedTokenDetails.save((err, newTokenDetails) => {
+                        if (err) {
+                            logger.error('error while updating token', 'userController:savetoken', 10);
+                            apiResponse = response.generate(true, 'error while updating auth token', 500, null);
+                            reject(apiResponse)
+                        }
+                        else {
+                            //console.log('new token details after log in'+newTokenDetails.authToken)
+                            console.log('newtokendetails : ' + newTokenDetails)
+                            let response = {
+                                authToken: newTokenDetails.authToken,
+                                userDetails: tokenDetails.userDetails
+                            }
+                            resolve(response)
+                        }
+                    })
+                }
+            })
+        });//end of promise for saving token
+    }//end of savetoken function
+
+    findUser(req, res)
+        .then(validatePassword)
+        .then(generateToken)
+        .then(saveToken)
+        .then((resolve) => {
+            apiResponse = response.generate(false, 'login successfull', 200, resolve);
+            res.status(200);
+            res.send(apiResponse);
+        })
+        .catch((error) => {
+            apiResponse = response.generate(true, error.message, error.status, null);
+            res.status(error.status);
+            res.send(apiResponse);
+        })
+
 }
 
 //getting all users
