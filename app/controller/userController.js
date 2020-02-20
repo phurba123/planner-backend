@@ -290,10 +290,27 @@ let logout = (req, res) => {
 
 } // end of the logout function.
 
-//getting all users
+/* Get all user Details */
 let getAllUsers = (req, res) => {
-    res.send('getting all users')
-}
+    UserModel.find()
+        .select('-password -__v -_id')
+        .lean()
+        .exec((err, result) => {
+            if (err) {
+                console.log(err)
+                logger.error('failed to find all user', 'User Controller: getAllUser', 10)
+                let apiResponse = response.generate(true, 'Failed To Find User Details', 500, null)
+                res.send(apiResponse)
+            } else if (checkLib.isEmpty(result)) {
+                logger.info('No User Found', 'User Controller: getAllUser')
+                let apiResponse = response.generate(true, 'No User Found', 404, null)
+                res.send(apiResponse)
+            } else {
+                let apiResponse = response.generate(false, 'All User Details Found', 200, result)
+                res.send(apiResponse)
+            }
+        })
+}// end get all users
 
 //getting single user by userId
 let getUserById = (req, res) => {

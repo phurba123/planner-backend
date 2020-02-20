@@ -18,7 +18,7 @@ module.exports.setRouter = (app)=>
     app.post(`${baseUrl}/logout`,authMiddleware.isAuthorized, userController.logout);
 
     //route for getting all the users
-    app.get(`${baseUrl}/view/all`,userController.getAllUsers)
+    app.get(`${baseUrl}/view/all`,authMiddleware.isAuthorized, userController.getAllUsers)
 
     //route for getting single user by userId
     app.get(`${baseUrl}/:userId/view`,userController.getUserById);
