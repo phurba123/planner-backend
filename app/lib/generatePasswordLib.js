@@ -27,6 +27,6 @@ let comparePassword = (password,hashPassword,cb)=>
 }
 module.exports=
 {
-    hashPassword,
-    comparePassword
+    hashPassword:hashPassword,
+    comparePassword:comparePassword
 }

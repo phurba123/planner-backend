@@ -53,7 +53,7 @@ let signUpUser = (req, res) => {
                         logger.error(err.message, 'userController: createUser', 10)
                         let apiResponse = response.generate(true, 'Failed To Create User', 500, null)
                         reject(apiResponse)
-                    } else if (check.isEmpty(retrievedUserDetails)) {
+                    } else if (checkLib.isEmpty(retrievedUserDetails)) {
                         //console.log(req.body)
                         let newUser = new UserModel({
                             userId: shortid.generate(),
@@ -62,7 +62,7 @@ let signUpUser = (req, res) => {
                             userName: req.body.userName,
                             mobileNumber: req.body.mobileNumber,
                             email: req.body.email.toLowerCase(),
-                            password: passwordLib.hashpassword(req.body.password),
+                            password: passwordLib.hashPassword(req.body.password),
                             createdOn: timeLib.now()
                         })
                         newUser.save((err, newUser) => {
