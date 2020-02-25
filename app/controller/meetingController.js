@@ -116,7 +116,6 @@ let updateMeeting = (req, res) => {
                     let apiResponse = response.generate(true, 'No Meeting Found', 404, null)
                     reject(apiResponse)
                 } else {
-                    let apiResponse = response.generate(false, 'Meeting details Updated', 200, result)
                     resolve(result)
                 }
             });// end meeting model update
@@ -195,8 +194,63 @@ let deleteMeeting = (req, res) => {
         })
 }//end of deleting meeting
 
+let getAllMeetings = (req, res) => {
+
+    let validateUrlParam = () => {
+        return new Promise((resolve, reject) => {
+            if (req.params.userId) {
+                resolve(req);
+            }
+            else {
+                logger.error('no userId provided', 'meetingController:getAllMeetings:validateUrlParam', 10)
+                let apiResponse = response.generate(true, 'missing userId', 400, null)
+                reject(apiResponse)
+            }
+        })
+    }// end finduserDetails
+
+    let findMeetings = (req) => {
+        return new Promise((resolve, reject) => {
+            meetingModel.find({ 'participantId': req.params.userId })
+                .select()
+                .lean()
+                .exec((err, meetingDetails) => {
+                    if (err) {
+                        console.log(err)
+                        logger.error(err.message, 'Meeting Controller: findMeetings', 10)
+                        let apiResponse = response.generate(true, 'Failed To Find Meetings', 500, null)
+                        reject(apiResponse)
+                    } else if (check.isEmpty(meetingDetails)) {
+                        logger.info('No Meeting Found', 'Meeting  Controller:findMeetings')
+                        let apiResponse = response.generate(true, 'No Meeting Found', 404, null)
+                        reject(apiResponse)
+                    } else {
+                        resolve(meetingDetails)
+                    }
+                })
+
+
+
+        })
+    }// end findMeetings
+
+
+    validateUrlParam(req, res)
+        .then(findMeetings)
+        .then((resolve) => {
+            let apiResponse = response.generate(false, 'Meetings Found and Listed', 200, resolve)
+            res.send(apiResponse)
+        })
+        .catch((err) => {
+            console.log(err);
+            res.send(err);
+        })
+
+}// end getAllMeetingsFunction 
+
 module.exports = {
     addMeeting,
     updateMeeting,
-    deleteMeeting
+    deleteMeeting,
+    getAllMeetings
 }
