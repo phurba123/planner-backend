@@ -112,7 +112,7 @@ let updateMeeting = (req, res) => {
                     let apiResponse = response.generate(true, 'Failed To Update Meeting details', 500, null)
                     reject(apiResponse)
                 } else if (check.isEmpty(result)) {
-                    logger.info('No Meeting Found', 'Meeting Controller:updateMeeting')
+                    logger.info('No Meeting Found', 'Meeting Controller:updateMeeting', 5)
                     let apiResponse = response.generate(true, 'No Meeting Found', 404, null)
                     reject(apiResponse)
                 } else {
@@ -139,7 +139,60 @@ let updateMeeting = (req, res) => {
 
 //deleting meeting by id
 let deleteMeeting = (req, res) => {
-    //
+    //finding meeting detail
+    let findMeetingDetails = () => {
+        return new Promise((resolve, reject) => {
+            meetingModel.findOne({ 'meetingId': req.params.meetingId })
+                .lean()
+                .exec((err, meetingDetails) => {
+                    if (err) {
+                        logger.error(err.message, 'Meeting Controller: findMeetingDetails', 10)
+                        let apiResponse = response.generate(true, 'Failed To Find Meeting Details', 500, null)
+                        reject(apiResponse)
+                    } else if (check.isEmpty(meetingDetails)) {
+                        logger.info('No Meeting Found', 'Meeting Controller:findMeetingDetails', 5)
+                        let apiResponse = response.generate(true, 'No Meeting Found', 404, null)
+                        reject(apiResponse)
+                    } else {
+                        let apiResponse = response.generate(false, 'Meeting Details Found', 200, meetingDetails)
+                        resolve(meetingDetails)
+                    }
+                })
+        })
+    }// end validate user input
+
+    let deleteMeeting = (meetingDetails) => {
+        return new Promise((resolve, reject) => {
+
+            meetingModel.findOneAndRemove({ 'meetingId': req.params.meetingId }).exec((err, result) => {
+                if (err) {
+                    logger.error(err.message, 'Meeting Controller: deleteMeeting', 10)
+                    let apiResponse = response.generate(true, 'Failed To delete Meeting', 500, null)
+                    reject(apiResponse)
+                } else if (check.isEmpty(result)) {
+                    logger.info('No Meeting Found', 'Meeting Controller: deleteMeeting', 5)
+                    let apiResponse = response.generate(true, 'No Meeting Found', 404, null)
+                    reject(apiResponse)
+                } else {
+                    let newMeetingObj = meetingDetails;
+                    let apiResponse = response.generate(false, 'Deleted Meeting successfully', 200, result)
+                    resolve(result)
+                }
+            });// end meeting model find and remove
+
+        })
+    }// end deleteMeeting promise
+
+    findMeetingDetails(req, res)
+        .then(deleteMeeting)
+        .then((resolve) => {
+            let apiResponse = response.generate(false, 'Deleted the Meeting successfully', 200, resolve)
+            res.send(apiResponse)
+        })
+        .catch((err) => {
+            console.log(err);
+            res.send(err);
+        })
 }//end of deleting meeting
 
 module.exports = {
