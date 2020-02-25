@@ -194,7 +194,7 @@ let deleteMeeting = (req, res) => {
         })
 }//end of deleting meeting
 
-let getAllMeetings = (req, res) => {
+let getAllMeetingsOfUser = (req, res) => {
 
     let validateUrlParam = () => {
         return new Promise((resolve, reject) => {
@@ -246,11 +246,33 @@ let getAllMeetings = (req, res) => {
             res.send(err);
         })
 
-}// end getAllMeetingsFunction 
+}// end getAllMeetingsOfUser function
+
+let getMeetingByMeetingId = (req, res) => {
+    meetingModel.findOne({ 'meetingId': req.params.meetingId })
+    .select('-__v -_id')
+        .lean()
+        .exec((err, meetingDetails) => {
+            if (err) {
+                console.log(err)
+                logger.error(err.message, 'Meeting Controller: getMeetingByMeetingId', 10)
+                let apiResponse = response.generate(true, 'Failed To Find Meeting', 500, null)
+                res.send(apiResponse)
+            } else if (check.isEmpty(meetingDetails)) {
+                logger.info('No Meeting Found', 'Meeting Controller:getMeetingByMeetingId')
+                let apiResponse = response.generate(true, 'No Meeting Found', 404, null)
+                res.send(apiResponse)
+            } else {
+                let apiResponse = response.generate(false, 'Meeting Found', 200, meetingDetails)
+                res.send(apiResponse)
+            }
+        })
+}// end getMeetingDetailsFunction
 
 module.exports = {
     addMeeting,
     updateMeeting,
     deleteMeeting,
-    getAllMeetings
+    getAllMeetingsOfUser,
+    getMeetingByMeetingId
 }

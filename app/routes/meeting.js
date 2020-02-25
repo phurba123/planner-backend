@@ -12,7 +12,9 @@ let setRouter = (app)=>
     app.post(`${baseUrl}/:meetingId/deleteMeeting`,controller.deleteMeeting);
 
     //get all meetings of particular user by userId
-    app.get(`${baseUrl}/:userId/view/all`,controller.getAllMeetings)
+    app.get(`${baseUrl}/:userId/view/all`,controller.getAllMeetingsOfUser)
+
+    app.get(`${baseUrl}/:meetingId/view`,controller.getMeetingByMeetingId)
 }
 
 module.exports ={
