@@ -9,6 +9,7 @@ let logger = require('./app/lib/loggerLib')
 const morgan = require('morgan')
 const routeLogger = require('./app/middleware/routeLogger');
 const appErrorHandler = require('./app/middleware/appErrorHandler');
+const socketLib = require('./app/lib/socketLib')
 
 //application level middlewares
 
@@ -106,6 +107,9 @@ function onListening() {
   let db = mongoose.connect(config.db.uri,
     { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, });
 }
+
+//socket connection
+socketLib.setServer(server);
 
 /**
  * database connection settings
