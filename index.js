@@ -8,7 +8,7 @@ let mongoose = require('mongoose')
 let logger = require('./app/lib/loggerLib')
 const morgan = require('morgan')
 const routeLogger = require('./app/middleware/routeLogger');
-const appErrorHandler = require('./app/middleware/appErrorHandler')
+const appErrorHandler = require('./app/middleware/appErrorHandler');
 
 //application level middlewares
 
