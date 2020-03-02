@@ -8,8 +8,8 @@ const tokenLib = require('../lib/tokenLib')
 const authModel = mongoose.model('authModel')
 
 let isAuthorized = (req, res, next) => {
-    if (req.params.authToken || req.query.authToken || req.body.authToken || req.header['authToken']) {
-        authModel.findOne({ authToken: req.params.authToken || req.query.authToken || req.body.authToken || req.header['authToken'] })
+    if (req.params.authToken || req.query.authToken || req.body.authToken || req.header('authToken')) {
+        authModel.findOne({ 'authToken': req.params.authToken || req.query.authToken || req.body.authToken || req.header('authToken') })
             .exec((error, authDetails) => {
                 if (error) {
                     logger.error('error in finding authToken', 'authorizationmiddleware', 10);

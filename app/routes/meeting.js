@@ -15,6 +15,7 @@ let setRouter = (app)=>
     app.get(`${baseUrl}/:userId/view/all`,controller.getAllMeetingsOfUser)
 
     app.get(`${baseUrl}/:meetingId/view`,controller.getMeetingByMeetingId)
+    
 }
 
 module.exports ={

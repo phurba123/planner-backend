@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const schema = mongoose.Schema;
 const time = require('../lib/timeLib')
 
-const authModel = new schema(
+let authModel = new schema(
     {
         userId:{
             type:String

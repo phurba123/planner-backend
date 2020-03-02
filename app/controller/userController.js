@@ -9,7 +9,7 @@ let shortid = require('shortid');
 let passwordLib = require('../lib/generatePasswordLib');
 let timeLib = require('../lib/timeLib')
 let tokenLib = require('../lib/tokenLib')
-
+let emailLib = require('../lib/emailLib')
 let mongoose = require('mongoose')
 
 let UserModel = mongoose.model('User');
@@ -67,7 +67,7 @@ let signUpUser = (req, res) => {
                             password: passwordLib.hashPassword(req.body.password),
                             createdOn: timeLib.now()
                         })
-                        newUser.save((err, newUser) => {
+                        newUser.save((err, newUserDetail) => {
                             if (err) {
                                 //console.log(err)
                                 logger.error(err.message, 'userController: createUser', 10)
@@ -75,7 +75,7 @@ let signUpUser = (req, res) => {
                                 reject(apiResponse)
                             } else {
                                 //converting mongoose object to plain javascript object
-                                let newUserObj = newUser.toObject();
+                                let newUserObj = newUserDetail.toObject();
 
                                 resolve(newUserObj)
                             }
@@ -195,7 +195,7 @@ let logInUser = (req, res) => {
         console.log('save token');
 
         return new Promise((resolve, reject) => {
-            authModel.findOne({ userId: tokenDetails.userDetails.userId }, (err, retrievedTokenDetails) => {
+            authModel.findOne({ 'userId': tokenDetails.userDetails.userId }, (err, retrievedTokenDetails) => {
                 if (err) {
                     logger.error(err.message, 'userController:saveToken', 10);
                     apiResponse = response.generate(true, err.message, 500, null);
@@ -273,7 +273,7 @@ let logInUser = (req, res) => {
 }//end of login
 
 let logout = (req, res) => {
-    authModel.findOneAndRemove({ userId: req.user.userId }, (err, result) => {
+    authModel.findOneAndRemove({ userId: req.body.userId }, (err, result) => {
         if (err) {
             console.log(err)
             logger.error(err.message, 'user Controller: logout', 10)
@@ -376,6 +376,111 @@ let editUser = (req, res) => {
         }
     });// end editing user
 }
+//recover password
+let recoverForgotPassword = (req, res) => {
+    //validating email
+    let validateUserInput = () => {
+        return new Promise((resolve, reject) => {
+            if (req.params.email) {
+                if (!validateInput.Email(req.params.email)) {
+                    apiResponse = response.generate(true, 'email does not met the requirement', 400, null);
+                    logger.error('not valid email', 'userController:recoverForgotPassword:validateUserInput', 10)
+                    reject(apiResponse)
+                }
+                else {
+                    logger.info('user validated', 'userController:validateUserInput', 10);
+                    resolve(req);
+                }
+            }
+            else {
+                logger.error('email field missing', 'userController:recoverForgotPassword', 10);
+                apiResponse = response.generate(true, 'Email is missing', 400, null);
+                reject(apiResponse);
+            }
+        });
+    }//end of validate user input
+
+    let findUser = () => {
+        return new Promise((resolve, reject) => {
+
+            UserModel.findOne({ 'email': req.params.email })
+                .select('-__v -_id')
+                .lean()
+                .exec((err, result) => {
+                    if (err) {
+                        console.log(err)
+                        logger.error('failed to find user detail', 'User Controller: getSingleUser', 10)
+                        let apiResponse = response.generate(true, 'Failed To Find User Details', 500, null)
+                        reject(apiResponse)
+                    } else if (checkLib.isEmpty(result)) {
+                        logger.info('No User Found with given email', 'User Controller:recoverPassword')
+                        let apiResponse = response.generate(true, 'No User Found with given email', 404, null)
+                        reject(apiResponse)
+                    } else {
+                        resolve(result)
+
+                    }
+                })
+        })
+    }
+
+    let generateAndSaveNewPassword = (userDetail) => {
+
+        //generating new password
+        let newPassword = passwordLib.generateNewPassword();
+        console.log('new password', newPassword);
+
+        //updating userDetail with new hashed password
+        userDetail.password = passwordLib.hashPassword(newPassword)
+
+        UserModel.update({ 'email': req.userDetail.email }, userDetail).exec((err, result) => {
+            if (err) {
+                console.log(err)
+                logger.error('failed to reset password', 'User Controller:generateAndSavePassword', 10)
+                let apiResponse = response.generate(true, 'Failed To reset Password', 500, null)
+                reject(apiResponse)
+            } else if (checkLib.isEmpty(result)) {
+                logger.info('No email Found', 'User Controller: generateAndSaveNewPassword')
+                let apiResponse = response.generate(true, 'No User with email Found', 404, null)
+                reject(apiResponse)
+            } else {
+                //Creating object for sending email 
+                let sendEmailObj = {
+                    email: req.params.email,
+                    subject: 'Reset Password for Meeting-Planner ',
+                    html: `<h5> Hi ${result.userName}</h5>
+                            <pre>
+                                -----It seems you have forgot your password of Meeting-planner------
+                                No worries , You have been provided a new password in replace to your
+                                old password.
+
+                                Your new password is -->${newPassword}<--
+
+                               ***** Keep visiting Meeting-planner****                                
+                            </pre>
+                    `
+                }
+
+                setTimeout(() => {
+                    emailLib.sendEmailToUser(sendEmailObj);
+                }, 1500);
+                let apiResponse = response.generate(false, 'reset password successfull', 200, result)
+                resolve(apiResponse)
+            }
+        });// end editing user
+    }
+
+    validateUserInput(req, res)
+        .then(findUser)
+        .then(generateAndSaveNewPassword)
+        .then((resolve) => {
+            res.send(resolve)
+        })
+        .catch((error) => {
+            res.send(error)
+        })
+}//end of recover password
+
 module.exports =
     {
         signUpUser,
@@ -384,5 +489,7 @@ module.exports =
         getUserById,
         deleteUserById,
         logout,
-        editUser
+        editUser,
+        recoverForgotPassword
     }
+
