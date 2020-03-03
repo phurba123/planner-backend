@@ -32,6 +32,7 @@ let setServer = (server) => {
                     // setting socket user id 
                     socket.userId = currentUser.userId
                     let userName = currentUser.userName;
+
                     let key = currentUser.userId
                     let value = userName
 
@@ -48,7 +49,7 @@ let setServer = (server) => {
 
                                     console.log(`${userName} is online`);
 
-                                    //emitting online-user-list
+                                    //emitting online-user-list on being new user listed as online
                                     socket.broadcast.emit('online-user-list', result);
                                 }
                             })
@@ -67,6 +68,7 @@ let setServer = (server) => {
             // unsubscribe the user from his own channel
 
             console.log("user is disconnected");
+            console.log(socket.userId)
 
             if (socket.userId) {
                 redisLib.deleteUserFromHash('onlineUsersList', socket.userId)

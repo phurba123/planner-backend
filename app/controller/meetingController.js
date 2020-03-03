@@ -160,7 +160,7 @@ let updateMeeting = (req, res) => {
                         email: meetingDetails.participantEmail,
                         subject: `Meeting Updated`,
                         html: `<p> Hi ${meetingDetails.participantName} , ${meetingDetails.hostName} has updated your <br>
-                        meeting titled - ${meetingDetails.topic}.</p><br>
+                        meeting titled -<cite> ${meetingDetails.topic}</cite>.</p><br>
                         
                         <h3>Your new updated meeting info</h3><br>
                               
@@ -234,7 +234,7 @@ let deleteMeeting = (req, res) => {
                     }
                 })
         })
-    }// end validate user input
+    }// end finding meeting details
 
     let deleteMeeting = (meetingDetails) => {
         return new Promise((resolve, reject) => {
@@ -249,9 +249,22 @@ let deleteMeeting = (req, res) => {
                     let apiResponse = response.generate(true, 'No Meeting Found', 404, null)
                     reject(apiResponse)
                 } else {
-                    let newMeetingObj = meetingDetails;
+                    //let newMeetingObj = meetingDetails;
+                    let sendEmailObj = {
+                        email: meetingDetails.participantEmail,
+                        subject: `Meeting Canceled`,
+                        html: `<h3> Meeting Canceled </h3>
+                              <br> Hi , ${meetingDetails.participantName} .
+                              <br> ${meetingDetails.hostName} has canceled the meeting titled: 
+                              <cite><b>${meetingDetails.topic}</b><cite>.
+                            `
+                    }//end of sendEmailObj
+
+                    setTimeout(() => {
+                        emailLib.sendEmailToUser(sendEmailObj);
+                    }, 1500);
                     let apiResponse = response.generate(false, 'Deleted Meeting successfully', 200, result)
-                    resolve(result)
+                    resolve(apiResponse)
                 }
             });// end meeting model find and remove
 
@@ -261,8 +274,7 @@ let deleteMeeting = (req, res) => {
     findMeetingDetails(req, res)
         .then(deleteMeeting)
         .then((resolve) => {
-            let apiResponse = response.generate(false, 'Deleted the Meeting successfully', 200, resolve)
-            res.send(apiResponse)
+            res.send(resolve)
         })
         .catch((err) => {
             console.log(err);
