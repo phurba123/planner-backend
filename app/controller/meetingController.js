@@ -4,7 +4,8 @@ let meetingModel = mongoose.model('Meeting');
 let shortid = require('shortid');
 let time = require('../lib/timeLib');
 let response = require('../lib/responseLib');
-let check = require('../lib/checkLib')
+let check = require('../lib/checkLib');
+let emailLib = require('../lib/emailLib')
 
 //adding meeting
 let addMeeting = (req, res) => {
@@ -51,6 +52,43 @@ let addMeeting = (req, res) => {
                 }
                 else {
                     let newMeetingObj = newMeeting.toObject();
+
+                    //creating email object for sending email
+                    let sendEmailObj = {
+                        email: newMeetingObj.participantEmail,
+                        subject: `New meeting scheduled`,
+                        html: `<p> Hi ${newMeetingObj.participantName} , ${newMeetingObj.hostName} has scheduled <br>
+                        a meeting for you via Meeting-Planner.</p>
+                              <br> 
+                              
+                        <div>
+                              <div>
+                                <label>Meeting Topic : </label>
+                                <h4 >${newMeetingObj.topic}</h4>
+                              </div><br>
+
+                              <div>
+                              <label>Description : </label>
+                              <p>${newMeetingObj.meetingDescription}</p>
+                              </div><br>
+                              
+                              
+                            <div>
+                                <label for="startDate">Date : </label>
+                                <p id="startDate">Your meeting starts from ${newMeetingObj.meetingStartDate}</p>
+                            </div><br>
+
+                             <div>
+                                <label>Venue : </label>
+                                <p>${newMeetingObj.meetingPlace}</p>
+                              </div> 
+                        </div>      
+                              `
+                    }//end of creating object for email
+
+                    setTimeout(() => {
+                        emailLib.sendEmailToUser(sendEmailObj);
+                    }, 1500);
                     delete newMeetingObj._id;
                     delete newMeetingObj.__v;
                     resolve(newMeetingObj)
@@ -116,6 +154,44 @@ let updateMeeting = (req, res) => {
                     let apiResponse = response.generate(true, 'No Meeting Found', 404, null)
                     reject(apiResponse)
                 } else {
+
+                    //object for email sending
+                    let sendEmailObj = {
+                        email: meetingDetails.participantEmail,
+                        subject: `Meeting Updated`,
+                        html: `<p> Hi ${meetingDetails.participantName} , ${meetingDetails.hostName} has updated your <br>
+                        meeting titled - ${meetingDetails.topic}.</p><br>
+                        
+                        <h3>Your new updated meeting info</h3><br>
+                              
+                        <div>
+                              <div>
+                                <label>Meeting Topic : </label>
+                                <h4 >${options.topic}</h4>
+                              </div><br>
+
+                              <div>
+                              <label>Description : </label>
+                              <p>${options.meetingDescription}</p>
+                              </div><br>
+                              
+                              
+                            <div>
+                                <label for="startDate">Date : </label>
+                                <p id="startDate">Your meeting starts from ${options.meetingStartDate}</p>
+                            </div><br>
+
+                             <div>
+                                <label>Venue : </label>
+                                <p>${options.meetingPlace}</p>
+                              </div> 
+                        </div>      
+                              `
+                    }//end of creating object for email
+
+                    setTimeout(() => {
+                        emailLib.sendEmailToUser(sendEmailObj);
+                    }, 1500);
                     resolve(result)
                 }
             });// end meeting model update
@@ -250,7 +326,7 @@ let getAllMeetingsOfUser = (req, res) => {
 
 let getMeetingByMeetingId = (req, res) => {
     meetingModel.findOne({ 'meetingId': req.params.meetingId })
-    .select('-__v -_id')
+        .select('-__v -_id')
         .lean()
         .exec((err, meetingDetails) => {
             if (err) {
