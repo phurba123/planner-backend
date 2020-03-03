@@ -433,42 +433,43 @@ let recoverForgotPassword = (req, res) => {
         //updating userDetail with new hashed password
         userDetail.password = passwordLib.hashPassword(newPassword)
 
-        UserModel.update({ 'email': req.userDetail.email }, userDetail).exec((err, result) => {
-            if (err) {
-                console.log(err)
-                logger.error('failed to reset password', 'User Controller:generateAndSavePassword', 10)
-                let apiResponse = response.generate(true, 'Failed To reset Password', 500, null)
-                reject(apiResponse)
-            } else if (checkLib.isEmpty(result)) {
-                logger.info('No email Found', 'User Controller: generateAndSaveNewPassword')
-                let apiResponse = response.generate(true, 'No User with email Found', 404, null)
-                reject(apiResponse)
-            } else {
-                //Creating object for sending email 
-                let sendEmailObj = {
-                    email: req.params.email,
-                    subject: 'Reset Password for Meeting-Planner ',
-                    html: `<h5> Hi ${result.userName}</h5>
-                            <pre>
-                                -----It seems you have forgot your password of Meeting-planner------
-                                No worries , You have been provided a new password in replace to your
-                                old password.
+        return new Promise((resolve, reject) => {
+            UserModel.updateOne({ 'email': req.params.email }, userDetail).exec((err, result) => {
+                if (err) {
+                    console.log(err)
+                    logger.error('failed to reset password', 'User Controller:generateAndSavePassword', 10)
+                    let apiResponse = response.generate(true, 'Failed To reset Password', 500, null)
+                    reject(apiResponse)
+                } else if (checkLib.isEmpty(result)) {
+                    logger.info('No email Found', 'User Controller: generateAndSaveNewPassword')
+                    let apiResponse = response.generate(true, 'No User with email Found', 404, null)
+                    reject(apiResponse)
+                } else {
+                    //Creating object for sending email 
+                    let sendEmailObj = {
+                        email: req.params.email,
+                        subject: 'Reset Password for Meeting-Planner ',
+                        html: `<h5> Hi ${userDetail.userName}</h5>
+                                <pre>
+-----It seems you have forgot your password of Meeting-planner------
+No worries , You have been provided a new password in replace to your
+old password.
+    
+Your new password is -->${newPassword}<--
+    
+***** Keep visiting Meeting-planner****                                
+</pre>`
+                    }
 
-                                Your new password is -->${newPassword}<--
-
-                               ***** Keep visiting Meeting-planner****                                
-                            </pre>
-                    `
+                    setTimeout(() => {
+                        emailLib.sendEmailToUser(sendEmailObj);
+                    }, 1500);
+                    let apiResponse = response.generate(false, 'reset password successfull', 200, result)
+                    resolve(apiResponse)
                 }
-
-                setTimeout(() => {
-                    emailLib.sendEmailToUser(sendEmailObj);
-                }, 1500);
-                let apiResponse = response.generate(false, 'reset password successfull', 200, result)
-                resolve(apiResponse)
-            }
-        });// end editing user
-    }
+            });
+        })
+    }//end of generating and saving new password
 
     validateUserInput(req, res)
         .then(findUser)

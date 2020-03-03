@@ -3,19 +3,19 @@ const nodemailer = require("nodemailer");
 let sendEmailToUser = (sendEmailObj) => {
 
     let transporter = nodemailer.createTransport({
-        host: "smtp.ethereal.email",
+        service: 'gmail', 
         auth: {
-            user: 'kundhish@gmail.com',
-            pass: 'randyorton'
+            user: 'sherpaphurba37@gmail.com', 
+            pass: 'phursangg' 
         }
     });
 
     // setup email data 
     let mailOptions = {
-        from: '"Meeting-Planner" <kundhis@gmail.com>', // sender address
+        from: '"Meeting-Planner" <sherpaphurba37@gmail.com>', // sender address
         to: sendEmailObj.email, // list of receivers
         subject: sendEmailObj.subject, // Subject line
-        html: sendEmailOptions.html // html body
+        html: sendEmailObj.html // html body
     };
 
     // send mail with defined transport object
