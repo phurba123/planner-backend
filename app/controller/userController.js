@@ -273,7 +273,7 @@ let logInUser = (req, res) => {
 }//end of login
 
 let logout = (req, res) => {
-    authModel.findOneAndRemove({ userId: req.body.userId }, (err, result) => {
+    authModel.findOneAndRemove({ userId: req.user.userId }, (err, result) => {
         if (err) {
             console.log(err)
             logger.error(err.message, 'user Controller: logout', 10)

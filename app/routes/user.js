@@ -15,19 +15,19 @@ module.exports.setRouter = (app)=>
     app.post(`${baseUrl}/login`,userController.logInUser);
 
     //route for logout
-    app.post(`${baseUrl}/logout`, userController.logout);
+    app.post(`${baseUrl}/logout`,authMiddleware.isAuthorized, userController.logout);
 
     //route for getting all the users
-    app.get(`${baseUrl}/view/all`, userController.getAllUsers)
+    app.get(`${baseUrl}/view/all`,authMiddleware.isAuthorized, userController.getAllUsers)
 
     //route for getting single user by userId
-    app.get(`${baseUrl}/:userId/view`, userController.getUserById);
+    app.get(`${baseUrl}/:userId/view`,authMiddleware.isAuthorized, userController.getUserById);
 
     //route for deleting particular user by user id
-    app.post(`${baseUrl}/:userId/delete`, userController.deleteUserById);
+    app.post(`${baseUrl}/:userId/delete`,authMiddleware.isAuthorized, userController.deleteUserById);
 
     //route for editing particular user by id
-    app.put(`${baseUrl}/:userId/edit`,userController.editUser)
+    app.put(`${baseUrl}/:userId/edit`,authMiddleware.isAuthorized, userController.editUser)
 
     //route for recovering forgot password
     app.get(`${baseUrl}/:email/recoverPassword`,userController.recoverForgotPassword);

@@ -18,14 +18,16 @@ let setServer = (server) => {
 
         // code to verify the user and make him online
 
-        socket.on('set-user', (authToken) => {
+        socket.on('set-user', (token) => {
 
             console.log("set-user called")
-            tokenLib.verifyClaimWithoutSecret(authToken, (err, user) => {
+            console.log(token)
+            tokenLib.verifyClaimWithoutSecret(token, (err, user) => {
                 if (err) {
                     socket.emit('auth-error', { status: 500, error: 'Please provide correct auth token' })
                 }
                 else {
+                    console.log('user inside setuser',user)
 
                     console.log("user is verified..setting details");
                     let currentUser = user.data;
@@ -59,8 +61,20 @@ let setServer = (server) => {
                 }
             })
 
-        }) // end of listening set-user event
+        })
 
+        socket.on('new-meeting',(participantId)=>
+        {
+            //emit users about new meeting created
+            socket.broadcast.emit(participantId,('New meeting is created'));
+        });
+
+        
+        socket.on('update-info',(participantId)=>
+        {
+            //emit users about update
+            socket.broadcast.emit(participantId,('Your Meeting has been updated'))
+        })
 
         socket.on('disconnect', () => {
             // disconnect the user from socket
