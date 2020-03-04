@@ -10,6 +10,7 @@ const morgan = require('morgan')
 const routeLogger = require('./app/middleware/routeLogger');
 const appErrorHandler = require('./app/middleware/appErrorHandler');
 const socketLib = require('./app/lib/socketLib')
+const helmet = require('helmet')
 
 //application level middlewares
 
@@ -21,6 +22,7 @@ app.use(appErrorHandler.globalErrorHandler);
 app.use(bodyParser.urlencoded({ extended: false }))
 // parse application/json
 app.use(bodyParser.json())
+app.use(helmet());
 
 // app.all('*', function (req, res, next) {
 //   res.header("Access-Control-Allow-Origin", config.allowedCorsOrigin);
