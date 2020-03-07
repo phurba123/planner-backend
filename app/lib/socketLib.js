@@ -8,7 +8,7 @@ const logger = require('./loggerLib')
 let setServer = (server) => {
 
     let io = socketio.listen(server);
-    let myIo = io.of('')//this is sort of socket routing(namespace)
+    let myIo = io.of('/')//this is sort of socket routing(namespace)
     
     myIo.on('connection', (socket) => {
 
